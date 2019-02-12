@@ -6,64 +6,58 @@ from queue import Queue
 
 
 class DownloadThread(threading.Thread):
-
-
-    def __init__(self, queue, destfolder):
+    def __init__(self, queue: Queue, destination_folder: str):
 
         super(DownloadThread, self).__init__()
         self.queue = queue
-        self.destfolder = destfolder
+        self.destination_folder = destination_folder
         self.daemon = True
 
-
     def run(self):
-
         while True:
             url = self.queue.get()
             try:
                 self.download_url(url)
             except Exception as e:
                 print("Error:", e)
+
             self.queue.task_done()
 
-
-    def download_url(self, url):
-
+    def download_url(self, url: str):
         # set Name and Destination folder for file
         name = url.split('/')[-1]
-        fullPath = os.path.join(self.destfolder, name)
+        full_path = os.path.join(self.destination_folder, name)
 
-        print("[%s] Downloading %s -> %s" % (self.ident, url, fullPath))
+        print("[%s] Downloading %s -> %s" % (self.ident, url, full_path))
 
-        urllib.request.urlretrieve(url, filename=fullPath)
+        urllib.request.urlretrieve(url, filename=full_path)
 
 
-def download(numthreads=8):
-
+def download(number_of_threads=8):
     queue = Queue()
 
     # Reading links for download and add them to queue
     with open("URLs.txt") as urls:
         url_list = urls.read().split()
+
     for url in url_list:
         queue.put(url)
 
     # Create folder
-    now = datetime.datetime.now()
-    destfolder = "videos-" + str(now.month) + "-" + str(now.day) + "-" + str(now.hour) + "-" + str(now.minute)
+    now = datetime.datetime.utcnow()
+    destination_folder = "videos-" + now.strftime('%m-%d-%H-%M')
 
-    if not os.path.exists(destfolder):
-        os.makedirs(destfolder)
+    if not os.path.exists(destination_folder):
+        os.makedirs(destination_folder)
     else:
-        print("Directory already exist")
+        print("Directory {} already exist".format(destination_folder))
 
-    for i in range(numthreads):
-        t = DownloadThread(queue, destfolder)
+    for i in range(number_of_threads):
+        t = DownloadThread(queue, destination_folder)
         t.start()
 
     queue.join()
 
 
 if __name__ == "__main__":
-
     download()
