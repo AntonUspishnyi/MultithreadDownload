@@ -28,7 +28,8 @@ class DownloadThread(threading.Thread):
         name = url.split('/')[-1]
         full_path = os.path.join(self.destination_folder, name)
 
-        print("[%s] Downloading %s -> %s" % (self.ident, url, full_path))
+        # print("[%s] Downloading %s -> %s" % (self.ident, url, full_path))
+        print("[{}] Downloading {} to ./{}/".format(self.ident, url, self.destination_folder))
 
         urllib.request.urlretrieve(url, filename=full_path)
 
